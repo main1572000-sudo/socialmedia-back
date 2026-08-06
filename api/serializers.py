@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Post
+from .models import Post , Comment
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,3 +33,12 @@ class PostSerializer(serializers.ModelSerializer):
     
     def get_dislike_count(self, obj):
         return obj.likes.filter(value='DISLIKE').count()
+    
+class CommentSerializer(serializers.ModelSerializer):
+    # إظهار اسم المستخدم بدلاً من مجرد الـ ID لتسهيل العرض في الواجهة
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'user', 'post', 'content', 'created_at']
+        read_only_fields = ['id', 'user', 'post', 'created_at']

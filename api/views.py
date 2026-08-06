@@ -2,10 +2,10 @@ from rest_framework import generics ,permissions,status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-from .serializers import User,UserSerializer,PostSerializer,Post
+from .serializers import User,UserSerializer,PostSerializer,CommentSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
-from .models import Post, PostLike
+from .models import Post, PostLike,Comment
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -108,3 +108,31 @@ class ToggleLikeView(APIView):
             # 3. أول تفاعل للمستخدم على هذا البوست -> إنشاء جديد
             PostLike.objects.create(user=user, post=post, value=like_type)
             return Response({'message': f'Added {like_type}'}, status=status.HTTP_201_CREATED)
+
+# عرض وإنشاء التعليقات لمُنشور محدد
+class CommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        # نقرأ المتغير باسم pk كما هو معرف في urls.py
+        post_id = self.kwargs.get('pk') 
+        return Comment.objects.filter(post_id=post_id)
+
+    def perform_create(self, serializer):
+        # هنا أيضاً نستخدم pk
+        post_id = self.kwargs.get('pk')
+        post = get_object_or_404(Post, id=post_id)
+        serializer.save(user=self.request.user, post=post)
+
+
+# تعديل أو حذف تعليق محدد (صاحب التعليق فقط)
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        # السماح للمستخدم بتعديل/حذف تعليقاته هو فقط
+        return Comment.objects.filter(user=self.request.user)
+    
+    

@@ -13,6 +13,7 @@ from datetime import timedelta
 from pathlib import Path
 import os
 import environ
+import dj_database_url
 
 # 1. تهيئة environ
 env = environ.Env(
@@ -98,7 +99,13 @@ WSGI_APPLICATION = 'lomashop.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db('DATABASE_URL')
+    'default': dj_database_url.config(
+        # 1. يقرأ الرابط من Render في الإنتاج تلقائياً
+        # 2. إذا لم يجده، سيبحث في ملف .env المحلي الخاص بك
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 

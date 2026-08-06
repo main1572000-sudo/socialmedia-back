@@ -26,4 +26,8 @@ urlpatterns = [
     path('posts/<uuid:pk>/like/', views.ToggleLikeView.as_view(), name='toggle-like'),
     # عرض المنشورات التي قام المستخدم بانشائها 
     path('myposts/', views.MyPostsView.as_view(), name='my_posts'),
+    # لعرض وإنشاء تعليق على منشور معين
+    path('posts/<uuid:pk>/comments/', views.CommentListCreateView.as_view(), name='post-comments'),
+    # لتعديل أو حذف تعليق معين بواسطة الـ ID الخاص بالتعليق
+    path('comments/<int:pk>/', views.CommentDetailView.as_view(), name='comment-detail'),
 ]
